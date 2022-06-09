@@ -1,17 +1,10 @@
-"""Higher intermediate representation (HIR) of re's regex AST.\n
+"""Higher intermediate representation (HIR) of re's regex AST.
 
 Provides a more readable and understandable representation of the regex AST which makes it easier to parse.
 
--- Basic Use --
-```py
-from regex_hir import hir
-
-print(hir(r"a"))
-# >> Literal(lit="a")
-```
-
 For more detailed information, see the documentation at:
-- xxxxxx
+- https://github.com/DexterHill0/regex_hir
+
 
 Copyright 2022 Dexter Hill
 

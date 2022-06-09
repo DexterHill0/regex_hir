@@ -97,7 +97,7 @@ class Backreference:
     """
     Backreference to a capture group. (`\\1`, `\\2`, ...)
 
-    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=CaptureGroup(index=1)), Literal(lit='\\'), Literal(lit='1')])`
+    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=CaptureGroup(index=1), flags=[]), Backreference(index=1)])`
     """
 
     index: int

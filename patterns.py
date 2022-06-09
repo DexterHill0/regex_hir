@@ -2,6 +2,8 @@
 Contains a class representing a regex with multiple consecutive patterns.
 """
 
+__all__ = ["Patterns"]
+
 import typing
 from dataclasses import dataclass
 
