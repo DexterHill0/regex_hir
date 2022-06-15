@@ -2,53 +2,15 @@
 Contains classes representing the different groups in regex.
 """
 
-__all__ = ["Group", "Backreference", "ConditionalBackreference", "GroupKind", "GroupFlags"]
+__all__ = ["Group", "Backreference", "ConditionalBackreference", "GroupKind"]
 
 import typing
 from dataclasses import dataclass, field
 
 from regex_hir.token import Token
 from regex_hir.ops import Opcode
+from regex_hir.flags import Flags
 from regex_hir.utils import override
-from regex_hir.nre.parser import FLAGS
-
-
-class GroupFlags:
-    """
-    Available modifier flags for non-capturing groups.
-    """
-
-    IGNORECASE = FLAGS["i"]
-    LOCALE = FLAGS["L"]
-    MULTILINE = FLAGS["m"]
-    DOTALL = FLAGS["s"]
-    VERBOSE = FLAGS["x"]
-    ASCII = FLAGS["a"]
-    TEMPLATE = FLAGS["t"]
-    UNICODE = FLAGS["u"]
-
-    _flags = [IGNORECASE, LOCALE, MULTILINE, DOTALL, VERBOSE, ASCII, TEMPLATE, UNICODE]
-
-    # Works backwards to find which flags were bitwise or-ed toegether to get the current flag.
-    def _find_flags(flag: int):
-        found = []
-        # A flag can only be used once. or-ing together the same flag twice does not change the value.
-        used = [0] * len(GroupFlags._flags)
-
-        def find(flag):
-            if flag == 0:
-                return
-                
-            for i, f in enumerate(GroupFlags._flags):
-                if f & flag and used[i] != 1:
-                    used[i] = 1
-
-                    found.append(f)
-                    find(flag - (f & flag))
-                
-        find(flag)
-
-        return found
 
 
 @dataclass
@@ -127,14 +89,14 @@ class Group(Token):
     """
     Represents any form of regex group.
     - `hir(r"(a)")` -> `Group(pat=Literal(lit='a'), kind=CaptureGroup(index=1))`
-    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit='a'), kind=NamedCaptureGroup(index=1, name="foo"))`\n
+    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit='a'), kind=NamedCaptureGroup(index=1, name="foo"))`
+    
     ...
     """
-
     pat: typing.Any
     kind: GroupKind
     
-    flags: list[GroupFlags] = field(default_factory=list)
+    flags: list[Flags] = field(default_factory=list)
 
     @override
     def from_pat(pat):
@@ -142,12 +104,13 @@ class Group(Token):
             case [(Opcode.SUBPATTERN, (index, add_flags, del_flags, pat))]:
                 hpat = pat.to_hir()
 
-                add = GroupFlags._find_flags(add_flags)
-                # Negate the del flags as they are techincally deleting the flag.
-                _del = list(map(lambda x: -x, GroupFlags._find_flags(del_flags)))
-                add.extend(_del)
-
+                # Non-capturing group (only "visible" if local modifier flags are set)
                 if index is None:
+                    add = Flags._find_flags(add_flags)
+                    # Negate the del flags as they are techincally deleting the flag.
+                    _del = list(map(lambda x: -x, Flags._find_flags(del_flags)))
+                    add.extend(_del)
+
                     return Group(hpat, GroupKind.NonCapturing(), flags=add)
 
                 if name := get_named_group(pat.state, index):

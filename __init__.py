@@ -1,4 +1,4 @@
-"""Higher intermediate representation (HIR) of re's regex AST.
+"""High-level intermediate representation (HIR) of re's regex AST.
 
 Provides a more readable and understandable representation of the regex AST which makes it easier to parse.
 
@@ -26,14 +26,16 @@ from regex_hir.nre.parser import SubPattern as __SubPattern, parse as __parse
 from regex_hir.literal import *
 from regex_hir.groups import *
 from regex_hir.patterns import *
+from regex_hir.char_class import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
 __ALL_TOKENS = [
-    # Not a regex token, but chaining multiple tokens together is probably most common so it goes first.
+    # Not really a token, but as `Patterns` matches consecutive patterns it comes first as that is most common.
     Patterns,
     
     Group,
+    CharacterClass,
     Literal,
 ]
 
