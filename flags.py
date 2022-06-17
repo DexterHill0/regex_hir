@@ -4,10 +4,12 @@ Vlass of available modifier flags for the regex. (Both inline and local).
 
 __all__ = ["Flags"]
 
+from enum import IntFlag
+
 from regex_hir.nre.parser import FLAGS
 
 
-class Flags:
+class Flags(IntFlag):
     """
     Available modifier flags.
     """
@@ -20,19 +22,19 @@ class Flags:
     TEMPLATE = FLAGS["t"]
     UNICODE = FLAGS["u"]
 
-    _flags = [IGNORECASE, LOCALE, MULTILINE, DOTALL, VERBOSE, ASCII, TEMPLATE, UNICODE]
-
     # Works backwards to find which flags were bitwise or-ed toegether to get the current flag.
     def _find_flags(flag: int):
+        flags = Flags._member_map_.values()
+
         found = []
         # A flag can only be used once. or-ing together the same flag twice does not change the value.
-        used = [0] * len(Flags._flags)
+        used = [0] * len(flags)
 
         def find(flag):
             if flag == 0:
                 return
                 
-            for i, f in enumerate(Flags._flags):
+            for i, f in enumerate(flags):
                 if f & flag and used[i] != 1:
                     used[i] = 1
 
