@@ -1,7 +1,7 @@
-from regex_hir.nre.constants import OPCODES, MIN_REPEAT, MAX_REPEAT, _NamedIntConstant
+from regex_hir.nre.constants import OPCODES, ATCODES, CHCODES, MIN_REPEAT, MAX_REPEAT, _NamedIntConstant
 
 RE_OPCODES = {
-    o.name: o for o in OPCODES
+    o.name: o for o in [*OPCODES, *ATCODES, *CHCODES]
 }
 # Min and max repeat are not included in the `OPCODES` list.
 RE_OPCODES = {

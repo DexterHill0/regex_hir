@@ -6,52 +6,38 @@ __all__ = ["Group", "Backreference", "ConditionalBackreference", "GroupKind"]
 
 import typing
 from dataclasses import dataclass, field
+from enum import auto
 
 from regex_hir.token import Token
 from regex_hir.ops import Opcode
 from regex_hir.flags import Flags
-from regex_hir.utils import override
+from regex_hir.utils import override, Enum
 
 
 @dataclass
 class CaptureGroup:
-    """
-    Plain capture group. Every new group is given a new index. `(...)`
-    """
-
     index: int
-
-@dataclass
-class AtomicGroup:
-    """
-    A form of non-capturing group. (`(?>...)`)
-    """
 
 @dataclass
 class NamedCaptureGroup:
-    """
-    Capture group with a specified name. (`(?P<foo>...)`) 
-    """
-
     index: int
     name: str
 
-@dataclass
-class NonCaptureGroup:
-    """
-    Group that does not capture.\n
-    Note: A plain non-capture group (`(?:a)`) is unpacked during parsing, but if there are group modifier flags (`(?i:a)`), it stays as a non-capture group.
-    """
 
-class GroupKind:
+class GroupKind(Enum):
     """
     The different kinds of regex groups.
-    """
+    - `Group`: `(...)`
+    - `Atomic`: `(?>...)`
+    - `Named`: `(?P<foo>...)`
 
+    - `NonCapturing`: `(?:...)`
+        - Note: A non-capture group without modifier flags is unpacked during parsing.
+    """
     Group = CaptureGroup
-    Atomic = AtomicGroup
     Named = NamedCaptureGroup
-    NonCapturing = NonCaptureGroup
+    NonCapturing = auto()
+    Atomic = auto()
 
 
 @dataclass
@@ -59,18 +45,16 @@ class Backreference:
     """
     Backreference to a capture group. (`\\1`, `\\2`, ...)
 
-    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=CaptureGroup(index=1), flags=[]), Backreference(index=1)])`
+    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1), flags=[]), Backreference(index=1)])`
     """
-
     index: int
 
 @dataclass
 class ConditionalBackreference:
     """
     Conditional capture group. (`(a)(?(1)b|c)`)
-    - `hir(r"(a)(?(1)b|c)")` -> `Patterns(pats=[Group(pat=Literal(lit='x'), kind=CaptureGroup(index=1)), ConditionalBackreference(index=1, true=Literal(lit='a'), false=Literal(lit='b'))])`
+    - `hir(r"(a)(?(1)b|c)")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1), flags=[]), ConditionalBackreference(index=1, true=Literal(lit='b'), false=Literal(lit='c'))])`
     """
-
     index: int
     # Represents the two branches the group can take.
     true: typing.Any
@@ -88,8 +72,8 @@ def get_named_group(state, index):
 class Group(Token):
     """
     Represents any form of regex group.
-    - `hir(r"(a)")` -> `Group(pat=Literal(lit='a'), kind=CaptureGroup(index=1))`
-    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit='a'), kind=NamedCaptureGroup(index=1, name="foo"))`
+    - `hir(r"(a)")` -> `Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1))`
+    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit='a'), kind=GroupKind.NamedCaptureGroup(index=1, name="foo"))`
     
     ...
     """
@@ -111,7 +95,7 @@ class Group(Token):
                     _del = list(map(lambda x: -x, Flags._find_flags(del_flags)))
                     add.extend(_del)
 
-                    return Group(hpat, GroupKind.NonCapturing(), flags=add)
+                    return Group(hpat, GroupKind.NonCapturing, flags=add)
 
                 if name := get_named_group(pat.state, index):
                     return Group(hpat, GroupKind.Named(index, name))
@@ -119,7 +103,7 @@ class Group(Token):
                 return Group(hpat, GroupKind.Group(index))
 
             case [(Opcode.ATOMIC_GROUP, pat)]:
-                return Group(pat.to_hir(), GroupKind.Atomic())
+                return Group(pat.to_hir(), GroupKind.Atomic)
 
             case [(Opcode.GROUPREF, index)]:
                 return Backreference(index)

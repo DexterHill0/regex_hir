@@ -6,7 +6,6 @@ __all__ = ["Literal"]
 
 from typing import Union
 from dataclasses import dataclass
-import itertools
 
 from regex_hir.token import Token
 from regex_hir.ops import Opcode

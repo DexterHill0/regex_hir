@@ -4,7 +4,6 @@ Contains a class representing character classes.
 
 __all__ = ["CharacterClass", "CharacterRange"]
 
-
 from dataclasses import dataclass
 
 from regex_hir.token import Token
@@ -27,6 +26,8 @@ class CharacterClass(Token):
     Represents a range of characters.
     - `hir(r"[az]")` -> `CharacterClass(ranges=[CharacterRange(start=97, end=97), CharacterRange(start=122, end=122)], negate=False)`
     - `hir(r"[^a-z]")` -> `CharacterClass(ranges=[CharacterRange(start=97, end=122)], negate=True)`
+
+    Note: A pattern like `a|b` is also represented as a character class as it is identical to `[ab]`.
     """
     ranges: list[CharacterRange]
     negate: bool

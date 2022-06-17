@@ -19,7 +19,6 @@ __all__ = ["hir", "hir_from"]
 __version__ = "0.0.1"
 __author__ = "@dexterhill0"
 
-
 import typing
 
 from regex_hir.nre.parser import SubPattern as __SubPattern, parse as __parse
@@ -27,6 +26,7 @@ from regex_hir.literal import *
 from regex_hir.groups import *
 from regex_hir.patterns import *
 from regex_hir.char_class import *
+from regex_hir.anchors import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
@@ -37,6 +37,7 @@ __ALL_TOKENS = [
     Group,
     CharacterClass,
     Literal,
+    Anchor
 ]
 
 # A function which can be called on a `SubPattern` to convert it to an HIR token.
