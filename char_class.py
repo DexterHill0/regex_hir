@@ -5,7 +5,6 @@ Contains a class representing character classes.
 __all__ = ["CharacterClass", "CharacterRange"]
 
 from dataclasses import dataclass, field
-from sre_parse import WHITESPACE
 import unicategories as unc
 
 from regex_hir.token import Token
@@ -33,7 +32,7 @@ class CharacterRange:
 # All keywords arguments go `<flag>=<ranges>`. If the flag `<flag>` is enabled, `<ranges>` is added to `default`.
 def crange(default, **kwargs):
     def inner(state):
-        ranges = default.copy() # aaaa references (copy so `default` isn't modifies when `ranges` is modified).
+        ranges = default.copy() # aaaa references (copy so `default` isn't modified when `ranges` is modified).
         
         for k in kwargs.keys():
             if state.has_flag(Flags[k]):
@@ -136,7 +135,7 @@ class CharacterClass(Token):
             # A single negated literal in a character class.
             # Only exists within a character class so putting it in the literal file doesn't make much sense.
             case [(Opcode.NOT_LITERAL, lit)]:
-                return CharacterRange(lit, lit)
+                return CharacterClass(CharacterRange(lit, lit), True, ignore_case, state=state)
 
             case [(Opcode.ANY, _)]:
                 return CharacterClass(Ranges.DOT(state), negated, ignore_case, state=state) # Negated should always be `False`.

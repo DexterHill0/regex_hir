@@ -58,7 +58,7 @@ __ALL_TOKENS = [
 # A function which can be called on a `SubPattern` to convert it to an HIR token.
 def to_hir(self: _SubPattern, state: State) -> typing.Any:
     for token in __ALL_TOKENS:
-        if m := token.from_pat(self, state._clone()):
+        if m := token.from_pat(self, state):
             return m
 
 setattr(_SubPattern, "to_hir", to_hir)
