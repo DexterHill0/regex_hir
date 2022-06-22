@@ -35,12 +35,13 @@ __author__ = "@dexterhill0"
 
 import typing
 
-from regex_hir.nre.parser import SubPattern as __SubPattern, parse as __parse
+from regex_hir.nre.parser import SubPattern as _SubPattern, parse as _parse, State as _State
 from regex_hir.literal import *
 from regex_hir.groups import *
 from regex_hir.patterns import *
 from regex_hir.char_class import *
 from regex_hir.anchors import *
+from regex_hir.flags import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
@@ -55,19 +56,26 @@ __ALL_TOKENS = [
 ]
 
 # A function which can be called on a `SubPattern` to convert it to an HIR token.
-def to_hir(self: __SubPattern) -> typing.Any:
+def to_hir(self: _SubPattern, state: State) -> typing.Any:
     for token in __ALL_TOKENS:
-        if m := token.from_pat(self):
+        if m := token.from_pat(self, state._clone()):
             return m
 
-setattr(__SubPattern, "to_hir", to_hir)
+setattr(_SubPattern, "to_hir", to_hir)
 
 # Method that always returns a `SubPattern` when indexing.
 # The default implementation of `__getitem__` in `SubPattern` only returns a `SubPattern` when indexed with a slice, and not an integer.
-def get(self: __SubPattern, index: int) -> __SubPattern:
+def get(self: _SubPattern, index: int) -> _SubPattern:
     return self[index:index+1]
 
-setattr(__SubPattern, "get", get)
+setattr(_SubPattern, "get", get)
+
+# Method to check if the state has a flag enabled.
+def has_flag(self: _State, flag: int) -> bool:
+    return (self.flags & flag) != 0 and (self.local_flags & flag) != 0
+
+setattr(_State, "has_flag", has_flag)
+
 
 
 def hir(regex: str) -> typing.Any:
@@ -75,12 +83,14 @@ def hir(regex: str) -> typing.Any:
     Takes a regex string, and converts it from re's regex AST to a higher intermediate representation using data classes.
     """
 
-    pattern = __parse(regex)
-    return pattern.to_hir()
+    pattern = _parse(regex)
+    base_state = State(set(Flags._find_flags(pattern.state.flags)))
+    return pattern.to_hir(base_state)
 
-def hir_from(pattern: __SubPattern) -> typing.Any:
+def hir_from(pattern: _SubPattern) -> typing.Any:
     """
     Takes a parsed regex string (`SubPattern`), and converts it to a higher intermediate representation using data classes.
     """
 
-    return pattern.to_hir()
+    base_state = State(set(Flags._find_flags(pattern.state.flags)))
+    return pattern.to_hir(base_state)

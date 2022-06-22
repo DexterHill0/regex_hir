@@ -5,30 +5,27 @@ Contains a class representing a literal character.
 __all__ = ["Literal"]
 
 from typing import Union
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from regex_hir.token import Token
 from regex_hir.ops import Opcode
 from regex_hir.utils import override, uord
 from regex_hir.patterns import Patterns
 
-@dataclass(init=False)
+
+@dataclass
 class Literal(Token):
     """
     Represents a single literal character.
-    - `hir(r"a")` -> `Literal(lit="a")`
+    - `hir(r"a")` -> `Literal(lit=97)`
     """
-    lit: str
-
-    def __init__(self, char: int):
-        # Convert the given character int to a string.
-        self.lit = chr(char)
+    lit: int
 
     @override
-    def from_pat(pat):
+    def from_pat(pat, state):
         match pat.data:
             case [(Opcode.LITERAL, lit)]:
-                return Literal(lit)
+                return Literal(lit, state=state)
 
     def char(char: str) -> Union['Literal', Patterns]:
         """

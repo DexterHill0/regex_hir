@@ -11,7 +11,7 @@ def uord(char):
     
     return (ord(char), None)
 
-# Wrapper enum class to allow for calling enum mebers.
+# Wrapper enum class to allow for calling enum members.
 class Enum(_Enum):
     def __call__(self, *args, **kwargs):
         return self.value(*args, **kwargs)

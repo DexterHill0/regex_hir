@@ -5,7 +5,7 @@ Contains classes representing the different groups in regex.
 __all__ = ["Group", "Backreference", "ConditionalBackreference", "GroupKind"]
 
 import typing
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import auto
 
 from regex_hir.token import Token
@@ -23,6 +23,9 @@ class NamedCaptureGroup:
     index: int
     name: str
 
+@dataclass
+class NonCapturingGroup:
+    flags: list[Flags]
 
 class GroupKind(Enum):
     """
@@ -36,24 +39,24 @@ class GroupKind(Enum):
     """
     Group = CaptureGroup
     Named = NamedCaptureGroup
-    NonCapturing = auto()
+    NonCapturing = NonCapturingGroup
     Atomic = auto()
 
 
 @dataclass
-class Backreference:
+class Backreference(Token):
     """
     Backreference to a capture group. (`\\1`, `\\2`, ...)
 
-    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1), flags=[]), Backreference(index=1)])`
+    - `hir(r"(a)\\1")` -> `Patterns(pats=[Group(pat=Literal(lit=97), kind=GroupKind.CaptureGroup(index=1), flags=[]), Backreference(index=1)])`
     """
     index: int
 
 @dataclass
-class ConditionalBackreference:
+class ConditionalBackreference(Token):
     """
     Conditional capture group. (`(a)(?(1)b|c)`)
-    - `hir(r"(a)(?(1)b|c)")` -> `Patterns(pats=[Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1), flags=[]), ConditionalBackreference(index=1, true=Literal(lit='b'), false=Literal(lit='c'))])`
+    - `hir(r"(a)(?(1)b|c)")` -> `Patterns(pats=[Group(pat=Literal(lit=97), kind=GroupKind.CaptureGroup(index=1), flags=[]), ConditionalBackreference(index=1, true=Literal(lit=98), false=Literal(lit=99))])`
     """
     index: int
     # Represents the two branches the group can take.
@@ -72,21 +75,20 @@ def get_named_group(state, index):
 class Group(Token):
     """
     Represents any form of regex group.
-    - `hir(r"(a)")` -> `Group(pat=Literal(lit='a'), kind=GroupKind.CaptureGroup(index=1))`
-    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit='a'), kind=GroupKind.NamedCaptureGroup(index=1, name="foo"))`
+    - `hir(r"(a)")` -> `Group(pat=Literal(lit=97), kind=GroupKind.CaptureGroup(index=1))`
+    - `hir(r"(?P<foo>a)")` -> `Group(pat=Literal(lit=97), kind=GroupKind.NamedCaptureGroup(index=1, name="foo"))`
     
     ...
     """
     pat: typing.Any
     kind: GroupKind
-    
-    flags: list[Flags] = field(default_factory=list)
 
     @override
-    def from_pat(pat):
+    def from_pat(pat, state):
         match pat.data:
             case [(Opcode.SUBPATTERN, (index, add_flags, del_flags, pat))]:
-                hpat = pat.to_hir()
+                nstate = state._update_flags(add_flags, del_flags) # Clones the state for the future tokens
+                hpat = pat.to_hir(nstate)
 
                 # Non-capturing group (only "visible" if local modifier flags are set)
                 if index is None:
@@ -95,18 +97,18 @@ class Group(Token):
                     _del = list(map(lambda x: -x, Flags._find_flags(del_flags)))
                     add.extend(_del)
 
-                    return Group(hpat, GroupKind.NonCapturing, flags=add)
+                    return Group(hpat, GroupKind.NonCapturing(add), state=state)
 
                 if name := get_named_group(pat.state, index):
-                    return Group(hpat, GroupKind.Named(index, name))
+                    return Group(hpat, GroupKind.Named(index, name), state=state)
 
-                return Group(hpat, GroupKind.Group(index))
+                return Group(hpat, GroupKind.Group(index), state=state)
 
             case [(Opcode.ATOMIC_GROUP, pat)]:
-                return Group(pat.to_hir(), GroupKind.Atomic)
+                return Group(pat.to_hir(), GroupKind.Atomic, state=state)
 
             case [(Opcode.GROUPREF, index)]:
-                return Backreference(index)
+                return Backreference(index, state=state)
 
             case [(Opcode.GROUPREF_EXISTS, (index, true, false))]:
-                return ConditionalBackreference(index, true.to_hir(), false.to_hir())
+                return ConditionalBackreference(index, true.to_hir(), false.to_hir(), state=state)
