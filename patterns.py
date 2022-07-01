@@ -16,6 +16,8 @@ class Patterns(Token):
     """
     Represents multiple consecutive patterns.
     - `hir(r"ab")` -> `Patterns(pats=[Literal(lit=97), Literal(lit=98)])`
+
+    ...
     """
     pats: list[typing.Any]
     

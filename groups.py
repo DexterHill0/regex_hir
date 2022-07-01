@@ -105,10 +105,10 @@ class Group(Token):
                 return Group(hpat, GroupKind.Group(index), state=state)
 
             case [(Opcode.ATOMIC_GROUP, pat)]:
-                return Group(pat.to_hir(), GroupKind.Atomic, state=state)
+                return Group(pat.to_hir(state), GroupKind.Atomic, state=state)
 
             case [(Opcode.GROUPREF, index)]:
                 return Backreference(index, state=state)
 
             case [(Opcode.GROUPREF_EXISTS, (index, true, false))]:
-                return ConditionalBackreference(index, true.to_hir(), false.to_hir(), state=state)
+                return ConditionalBackreference(index, true.to_hir(state), false.to_hir(state), state=state)

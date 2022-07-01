@@ -13,7 +13,7 @@ from regex_hir.utils import override, uord
 from regex_hir.flags import Flags
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class CharacterRange:
     """
     Start and end character codes of a single range. If start and end are equal it is a single character. Start cannot be larger than end.
@@ -22,9 +22,6 @@ class CharacterRange:
     """
     start: int
     end: int
-
-    def __hash__(self):
-      return hash((self.start, self.end))
 
 
 # Creates a function that returns different character ranges depending on the flags set.
@@ -100,8 +97,9 @@ class CharacterClass(Token):
     - `hir(r"[az]")` -> `CharacterClass(ranges=[CharacterRange(start=97, end=97), CharacterRange(start=122, end=122)], negate=False, ignore_case=False)`
     - `hir(r"[^a-z]")` -> `CharacterClass(ranges=[CharacterRange(start=97, end=122)], negate=True, ignore_case=False)`
 
-    All meta sequences like `\w`, `\d`, etc. (including `.`) are represented as characters classes.
-    By default, it will return all ASCII and Unicode characters the sequences represent. If Unicode is disabled (I.E. byte strings), it only returns the ASCII characters.
+    ...
+    Note: All meta sequences like `\w`, `\d`, etc. (including `.`) are represented as characters classes.
+    Note: By default, it will return all ASCII and Unicode characters the sequences represent. If Unicode is disabled (I.E. byte strings), it only returns the ASCII characters.
     """
     ranges: list[CharacterRange]
     negate: bool
@@ -194,8 +192,6 @@ class CharacterClass(Token):
         after case folding will contain the ranges:
         - `a-z`
         - `A-Z`
-
-        Note: If the ignore case flag is enabled, this will not add any new ranges as it already matches both cases.
         """
         new = []
 

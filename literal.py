@@ -18,6 +18,8 @@ class Literal(Token):
     """
     Represents a single literal character.
     - `hir(r"a")` -> `Literal(lit=97)`
+
+    ...
     """
     lit: int
 

@@ -35,13 +35,14 @@ __author__ = "@dexterhill0"
 
 import typing
 
-from regex_hir.nre.parser import SubPattern as _SubPattern, parse as _parse, State as _State
+from regex_hir.nre.parser import SubPattern as _SubPattern, parse as _parse
 from regex_hir.literal import *
 from regex_hir.groups import *
 from regex_hir.patterns import *
 from regex_hir.char_class import *
 from regex_hir.anchors import *
 from regex_hir.flags import *
+from regex_hir.branch import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
@@ -52,6 +53,7 @@ __ALL_TOKENS = [
     Group,
     CharacterClass,
     Literal,
+    Branch,
     Anchor
 ]
 
@@ -69,13 +71,6 @@ def get(self: _SubPattern, index: int) -> _SubPattern:
     return self[index:index+1]
 
 setattr(_SubPattern, "get", get)
-
-# Method to check if the state has a flag enabled.
-def has_flag(self: _State, flag: int) -> bool:
-    return (self.flags & flag) != 0 and (self.local_flags & flag) != 0
-
-setattr(_State, "has_flag", has_flag)
-
 
 
 def hir(regex: str) -> typing.Any:
