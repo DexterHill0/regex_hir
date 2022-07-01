@@ -10,15 +10,16 @@ import typing
 from regex_hir.token import Token
 from regex_hir.ops import Opcode
 from regex_hir.utils import override
-from regex_hir.nre.parser import SubPattern
+
 
 @dataclass
 class Branch(Token):
     """
     Represents a branch of matches.
-    - `hir(r"(a)|(b)")` -> ``
+    - `hir(r"(a)|(b)")` -> `Branch(branches=[Group(pat=Literal(lit=97), kind=GroupKind.CaptureGroup(index=1)), Group(pat=Literal(lit=98), kind=GroupKind.CaptureGroup(index=2))])`
 
     ...
+
     Note: Certain branches may be optimised into character classes by `re`. For example: `a|b` will become `[ab]`, or `ab|ad|ac` will become `a[bdc]`.
     """
     branches: list[typing.Any]

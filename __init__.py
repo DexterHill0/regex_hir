@@ -43,6 +43,7 @@ from regex_hir.char_class import *
 from regex_hir.anchors import *
 from regex_hir.flags import *
 from regex_hir.branch import *
+from regex_hir.lookarounds import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
@@ -54,6 +55,7 @@ __ALL_TOKENS = [
     CharacterClass,
     Literal,
     Branch,
+    Lookaround,
     Anchor
 ]
 

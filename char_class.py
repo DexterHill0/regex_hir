@@ -98,6 +98,7 @@ class CharacterClass(Token):
     - `hir(r"[^a-z]")` -> `CharacterClass(ranges=[CharacterRange(start=97, end=122)], negate=True, ignore_case=False)`
 
     ...
+    
     Note: All meta sequences like `\w`, `\d`, etc. (including `.`) are represented as characters classes.
     Note: By default, it will return all ASCII and Unicode characters the sequences represent. If Unicode is disabled (I.E. byte strings), it only returns the ASCII characters.
     """
