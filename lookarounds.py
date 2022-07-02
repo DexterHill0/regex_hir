@@ -26,7 +26,6 @@ class LookaroundKind(Enum):
     - `NegativeLookahead`: `(?!...)`
     - `PositiveLookbehind`: `(?<=...)`
     - `NegativeLookbehind`: `(?<!...)`
-
     """
     PositiveLookahead = auto()
     NegativeLookahead = auto()

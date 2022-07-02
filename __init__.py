@@ -44,14 +44,16 @@ from regex_hir.anchors import *
 from regex_hir.flags import *
 from regex_hir.branch import *
 from regex_hir.lookarounds import *
+from regex_hir.repetition import *
 
 
 # All the HIR tokens (ordered in an approximate guess as to which ones are used more commonly).
-__ALL_TOKENS = [
+_ALL_TOKENS = [
     # Not really a token, but as `Patterns` matches consecutive patterns it comes first as that is most common.
     Patterns,
     
     Group,
+    Repetition,
     CharacterClass,
     Literal,
     Branch,
@@ -61,7 +63,7 @@ __ALL_TOKENS = [
 
 # A function which can be called on a `SubPattern` to convert it to an HIR token.
 def to_hir(self: _SubPattern, state: State) -> typing.Any:
-    for token in __ALL_TOKENS:
+    for token in _ALL_TOKENS:
         if m := token.from_pat(self, state):
             return m
 
