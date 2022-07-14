@@ -30,7 +30,7 @@ SOFTWARE.
 """
 
 __all__ = ["hir", "hir_from"]
-__version__ = "0.0.1"
+__version__ = "0.1.1"
 __author__ = "@dexterhill0"
 
 import typing
@@ -51,7 +51,7 @@ from regex_hir.repetition import *
 _ALL_TOKENS = [
     # Not really a token, but as `Patterns` matches consecutive patterns it comes first as that is most common.
     Patterns,
-    
+
     Group,
     Repetition,
     CharacterClass,
@@ -62,17 +62,23 @@ _ALL_TOKENS = [
 ]
 
 # A function which can be called on a `SubPattern` to convert it to an HIR token.
+
+
 def to_hir(self: _SubPattern, state: State) -> typing.Any:
     for token in _ALL_TOKENS:
         if m := token.from_pat(self, state):
             return m
 
+
 setattr(_SubPattern, "to_hir", to_hir)
 
 # Method that always returns a `SubPattern` when indexing.
 # The default implementation of `__getitem__` in `SubPattern` only returns a `SubPattern` when indexed with a slice, and not an integer.
+
+
 def get(self: _SubPattern, index: int) -> _SubPattern:
     return self[index:index+1]
+
 
 setattr(_SubPattern, "get", get)
 
@@ -85,6 +91,7 @@ def hir(regex: str) -> typing.Any:
     pattern = _parse(regex)
     base_state = State(set(Flags._find_flags(pattern.state.flags)))
     return pattern.to_hir(base_state)
+
 
 def hir_from(pattern: _SubPattern) -> typing.Any:
     """
